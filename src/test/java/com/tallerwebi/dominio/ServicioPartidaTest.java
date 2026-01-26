@@ -16,6 +16,7 @@ public class ServicioPartidaTest {
     private RepositorioUsuario repositorioUsuario;
     private RepositorioPartida repositorioPartida;
     private RepositorioJugador repositorioJugador;
+    private ServicioEstrategia servicioEstrategia;
     private ServicioUsuario servicioUsuario;
     private ServicioDeckOfCards servicioDeckOfCards;
     private ServicioPartidaImpl servicioPartida;
@@ -27,9 +28,10 @@ public class ServicioPartidaTest {
         repositorioUsuario = mock(RepositorioUsuario.class);
         servicioDeckOfCards = mock(ServicioDeckOfCards.class);
         repositorioJugador = mock(RepositorioJugador.class);
+        servicioEstrategia = mock(ServicioEstrategia.class);
         servicioUsuario = mock(ServicioUsuario.class);
         servicioPartida = new ServicioPartidaImpl( servicioDeckOfCards, repositorioPartida, repositorioUsuario,
-                repositorioJugador, servicioUsuario);
+                repositorioJugador, servicioUsuario, servicioEstrategia);
     }
 
     @Test
@@ -50,11 +52,7 @@ public class ServicioPartidaTest {
         assertEquals(EstadoDeJuego.ABANDONADO ,partidaActiva.getEstadoJuego());
     }
 
-//    @Test
-//    public void queSePuedaCreearUnJugador() {
-//        Usuario usuario = givenExisteUnUsuario();
-//        assertNotNull(servicioPartida.crearJugador(usuario));
-//    }
+
 
     @Test
     public void queSePuedaIntanciarUnaPartida() throws PartidaNoCreadaException {
@@ -139,28 +137,37 @@ public class ServicioPartidaTest {
         assertEquals(200, partidaActiva.getApuesta());
     }
 
+//    @Test
+//    public void queAlSeleccionarElBotonEstrategiaElUsuarioRecibaUnaAyuda() throws PartidaActivaNoEnApuestaException{
+//        Usuario usuario = givenExisteUnUsuario();
+//        Partida partidaActiva = givenComienzaUnaPartida(usuario);
+//        whenSeleccionoBotonEmpezarPartida(partidaActiva);
+//        String mensajeEsperado= whenSeleccionoBotonEstrategia(partidaActiva, partidaActiva.getJugador());
+//        thenElUsuarioRecibeUnaAyuda(partidaActiva.getJugador(), mensajeEsperado);
+//    }
+//
+//    private void thenElUsuarioRecibeUnaAyuda(Jugador jugador, String mensajeEsperado) {
+//        assertEquals(mensajeEsperado, "Dobla si podes, sino pedi una carta.");
+//    }
+//
+//    private String whenSeleccionoBotonEstrategia(Partida partidaActiva, Jugador jugador) {
+//        servicioPartida.seleccionBotonEstrategia(partidaActiva);
+//        String mensajeEsperado= servicioPartida.mandarEstrategia(dto.getCartasJugador(), partidaActiva, partidaActiva.getJugador().getPuntaje(), partidaActiva.getCrupier().getPuntaje());
+//        return mensajeEsperado;
+//    }
     @Test
-    public void queAlSeleccionarElBotonEstrategiaElUsuarioRecibaUnaAyuda() throws PartidaActivaNoEnApuestaException{
+    public void queAlUtilizarLaEstrategiaSeDesactiveSuRespectivoBoton() {
         Usuario usuario = givenExisteUnUsuario();
         Partida partidaActiva = givenComienzaUnaPartida(usuario);
-        whenSeleccionoBotonEmpezarPartida(partidaActiva);
-        String mensajeEsperado= whenSeleccionoBotonEstrategia(partidaActiva, partidaActiva.getJugador());
-        thenElUsuarioRecibeUnaAyuda(partidaActiva.getJugador(), mensajeEsperado);
-    }
+        partidaActiva.setBotonEstrategia(true);
+        //mockeo el servicioEstrategia
+       when(servicioEstrategia.recomendar(anyList(), anyInt(), anyInt())).thenReturn("");
+        servicioPartida.mandarEstrategia(new ArrayList<>(), partidaActiva, 10, 5);
 
-    private void thenElUsuarioRecibeUnaAyuda(Jugador jugador, String mensajeEsperado) {
-        assertEquals(mensajeEsperado, "Dobla si podes, sino pedi una carta.");
+        assertEquals(false, partidaActiva.getBotonEstrategia());
     }
-
-    private String whenSeleccionoBotonEstrategia(Partida partidaActiva, Jugador jugador) {
-        servicioPartida.seleccionBotonEstrategia(partidaActiva);
-        String mensajeEsperado= servicioPartida.mandarEstrategia(partidaActiva, partidaActiva.getJugador().getPuntaje(), partidaActiva.getCrupier().getPuntaje());
-        return mensajeEsperado;
-    }
-
 
     private void whenSeDescuentaElSaldoDeLaApuesta(Partida partidaActiva) throws ApuestaInvalidaException, SaldoInsuficiente {
-
         servicioPartida.apostar(partidaActiva, partidaActiva.getApuesta());
     }
 

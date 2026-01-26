@@ -17,8 +17,8 @@ import static java.util.Objects.isNull;
 public class ServicioPartidaImpl implements ServicioPartida {
 
     private RepositorioPartida repositorioPartida;
-    private RepositorioUsuario RepositorioUsuario;
     private ServicioUsuario servicioUsuario;
+    private ServicioEstrategia servicioEstrategia;
     private RepositorioUsuario repositorioUsuario;
     private RepositorioJugador repositorioJugador;
     private ServicioDeckOfCards servicioDeckOfCards;
@@ -39,13 +39,14 @@ public class ServicioPartidaImpl implements ServicioPartida {
     }
 
     @Autowired
-    public ServicioPartidaImpl(ServicioDeckOfCards servicioDeckOfCards, RepositorioPartida respositorioPartida, RepositorioUsuario repositorioUsuario, RepositorioJugador repositorioJugador, ServicioUsuario servicioUsuario) {
+    public ServicioPartidaImpl(ServicioDeckOfCards servicioDeckOfCards, RepositorioPartida respositorioPartida, RepositorioUsuario repositorioUsuario, RepositorioJugador repositorioJugador, ServicioUsuario servicioUsuario, ServicioEstrategia servicioEstrategia) {
 
         this.servicioDeckOfCards = servicioDeckOfCards;
         this.repositorioPartida = respositorioPartida;
         this.repositorioUsuario = repositorioUsuario;
         this.repositorioJugador = repositorioJugador;
         this.servicioUsuario = servicioUsuario;
+        this.servicioEstrategia = servicioEstrategia;
     }
 
     public ServicioPartidaImpl(RepositorioPartida repositorioPartida, RepositorioJugador repositorioJugador) {
@@ -157,32 +158,9 @@ public class ServicioPartidaImpl implements ServicioPartida {
 
 
     @Override
-    public String mandarEstrategia(Partida partidaActiva, Integer jugadorPuntaje, Integer crupierPuntaje) {
-        String mensajeRecibido;
-
-        if (jugadorPuntaje <= 8) {
-            mensajeRecibido = "Pedi una carta, no hay riesgo.";
-        } else if (jugadorPuntaje == 9 && crupierPuntaje >= 3 && crupierPuntaje <= 6) {
-            mensajeRecibido = "Dobla si podes, sino pedi una carta.";
-        } else if (jugadorPuntaje == 10 && crupierPuntaje <= 9) {
-            mensajeRecibido = "Dobla si podes, sino pedi una carta.";
-        } else if (jugadorPuntaje == 11 && crupierPuntaje <= 10) {
-            mensajeRecibido = "Dobla si podes, sino pedi una carta.";
-        } else if (jugadorPuntaje == 12 && crupierPuntaje >= 4 && crupierPuntaje <= 6) {
-            mensajeRecibido = "Plantate.";
-        } else if (jugadorPuntaje >= 13 && jugadorPuntaje <= 16 && crupierPuntaje <= 6) {
-            mensajeRecibido = "Plantate.";
-        } else if (jugadorPuntaje >= 13 && jugadorPuntaje <= 16 && crupierPuntaje >= 7) {
-            mensajeRecibido = "Pedi una carta.";
-        } else if (jugadorPuntaje >= 17) {
-            mensajeRecibido = "Plantate.";
-        } else {
-            mensajeRecibido = "Pedi una carta.";
-        }
-
-        Jugador jugador = partidaActiva.getJugador();
-        jugador.setMensajeEstrategia(mensajeRecibido);
-        return mensajeRecibido;
+    public String mandarEstrategia(List<Map<String, Object>> cartasJugador, Partida partidaActiva, Integer jugadorPuntaje, Integer crupierPuntaje) {
+        partidaActiva.setBotonEstrategia(false);
+        return servicioEstrategia.recomendar(cartasJugador ,jugadorPuntaje, crupierPuntaje);
     }
 
 
@@ -274,6 +252,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
             partida.setFichasHabilitadas(true);
         } else if (partida.getEstadoJuego().equals(EstadoDeJuego.JUEGO)) {
             partida.setBotonesDesicionHabilitados(true);
+            partida.setBotonEstrategia(true);
             partida.setFichasHabilitadas(false);
         } else if (partida.getEstadoJuego().equals(EstadoDeJuego.FINALIZADA) || partida.getEstadoJuego().equals(EstadoDeJuego.ABANDONADO)) {
             partida.setBotonesDesicionHabilitados(false);
@@ -320,7 +299,10 @@ public class ServicioPartidaImpl implements ServicioPartida {
         while (total > 21 && ases > 0) {
             total -= 10;
             ases--;
+
         }
+
+
         return total;
     }
 

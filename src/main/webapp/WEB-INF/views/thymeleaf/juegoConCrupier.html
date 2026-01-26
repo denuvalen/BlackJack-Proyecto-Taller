@@ -104,7 +104,8 @@
 
             <form method="post" th:action="@{/mostrarEstrategia}" class="form-boton">
                 <button class="boton-desicion iconos-juego"
-                        th:classappend="${!partida.botonesDesicionHabilitados} ? ' boton-deshabilitado' : ''"
+                        th:disabled="${!partida.botonEstrategia}"
+                        th:classappend="${!partida.botonesDesicionHabilitados or !partida.botonEstrategia} ? ' boton-deshabilitado' : ''"
                         th:attr="disabled=${!partida.botonesDesicionHabilitados}">
                     <img th:src="@{/resources/core/images/boton-estrategia.png}" alt="Estrategia" />
                 </button>
@@ -135,7 +136,7 @@
                 <button class="boton-desicion iconos-juego"
                         th:classappend="${!partida.botonesDesicionHabilitados} ? ' boton-deshabilitado' : ''"
                         th:attr="disabled=${!partida.botonesDesicionHabilitados}">
-                    <img th:src="@{/resources/core/images/boton-pararse.png}" alt="Pararse" />
+                    <img th:src="@{/resources/core/images/boton-pararse.png}" alt="Plantarse" />
                 </button>
                 <p class="texto-descripcion">Pararse</p>
             </form>

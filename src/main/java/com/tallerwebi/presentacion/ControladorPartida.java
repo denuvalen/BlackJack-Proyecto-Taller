@@ -22,14 +22,15 @@ public class ControladorPartida {
     private ServicioDeckOfCards servicioDeck;
     private ServicioPartida servicioPartida;
     private ServicioUsuario servicioUsuario;
+    private ServicioEstrategia servicioEstrategia;
     private String deckId;
 
     @Autowired
-    public ControladorPartida(ServicioDeckOfCards servicioDeck, ServicioPartida servicioPartida, ServicioUsuario servicioUsuario) {
+    public ControladorPartida(ServicioDeckOfCards servicioDeck, ServicioPartida servicioPartida, ServicioUsuario servicioUsuario, ServicioEstrategia servicioEstrategia) {
         this.servicioDeck = servicioDeck;
         this.servicioPartida = servicioPartida;
         this.servicioUsuario = servicioUsuario;
-
+        this.servicioEstrategia = servicioEstrategia;
     }
 
     public ControladorPartida(ServicioPartida servicioPartida) {
@@ -113,7 +114,7 @@ public class ControladorPartida {
         ModelMap modelo = new ModelMap();
         ComienzoCartasDTO dto = (ComienzoCartasDTO) session.getAttribute("dto");
 
-        String mensajeEstrategia = servicioPartida.mandarEstrategia(partida, dto.getPuntajeJugador(), dto.getPuntajeDealer());
+        String mensajeEstrategia = servicioPartida.mandarEstrategia(dto.getCartasJugador() ,partida, dto.getPuntajeJugador(), dto.getPuntajeDealer());
 
         modelo.put("mensajeEstrategia", mensajeEstrategia);
         modelo.addAttribute("dto", dto);

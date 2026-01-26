@@ -19,7 +19,7 @@ public interface ServicioPartida {
     void inactivarPartidas(List<Partida> partidaActiva);
     Jugador crearJugador(Usuario usuario);
     void seleccionBotonEstrategia(Partida partidaActiva);
-    String mandarEstrategia(Partida partidaActiva, Integer jugadorPuntaje, Integer  puntajeDealer);
+    String mandarEstrategia(List<Map<String, Object>> cartasJugador, Partida partidaActiva, Integer jugadorPuntaje, Integer  puntajeDealer);
     Partida obtenerPartidaActiva(Usuario usuario);
     Integer doblarApuesta(Partida partidaActiva, Usuario usuario);
     String resultadoDeLaPartida(Partida partida, Integer puntosCrupier, Integer puntosCrupier1);

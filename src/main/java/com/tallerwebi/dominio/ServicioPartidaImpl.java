@@ -19,6 +19,8 @@ public class ServicioPartidaImpl implements ServicioPartida {
     private RepositorioPartida repositorioPartida;
     private ServicioUsuario servicioUsuario;
     private ServicioEstrategia servicioEstrategia;
+    private ServicioDoblarApuesta servicioDoblarApuesta;
+
     private RepositorioUsuario repositorioUsuario;
     private RepositorioJugador repositorioJugador;
     private ServicioDeckOfCards servicioDeckOfCards;
@@ -39,7 +41,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
     }
 
     @Autowired
-    public ServicioPartidaImpl(ServicioDeckOfCards servicioDeckOfCards, RepositorioPartida respositorioPartida, RepositorioUsuario repositorioUsuario, RepositorioJugador repositorioJugador, ServicioUsuario servicioUsuario, ServicioEstrategia servicioEstrategia) {
+    public ServicioPartidaImpl(ServicioDeckOfCards servicioDeckOfCards, RepositorioPartida respositorioPartida, RepositorioUsuario repositorioUsuario, RepositorioJugador repositorioJugador, ServicioUsuario servicioUsuario, ServicioEstrategia servicioEstrategia, ServicioDoblarApuesta servicioDoblarApuesta) {
 
         this.servicioDeckOfCards = servicioDeckOfCards;
         this.repositorioPartida = respositorioPartida;
@@ -47,6 +49,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
         this.repositorioJugador = repositorioJugador;
         this.servicioUsuario = servicioUsuario;
         this.servicioEstrategia = servicioEstrategia;
+        this.servicioDoblarApuesta = servicioDoblarApuesta;
     }
 
     public ServicioPartidaImpl(RepositorioPartida repositorioPartida, RepositorioJugador repositorioJugador) {
@@ -95,17 +98,6 @@ public class ServicioPartidaImpl implements ServicioPartida {
     @Override
     public List<Partida> buscarPartidaActiva(Usuario usuario) {
         return repositorioPartida.buscarPartidaActiva(usuario);
-    }
-
-    @Override
-    public Partida crearPartida(Usuario usuario) throws PartidaNoCreadaException {
-        corroborarExistenciaDePartidaActiva(usuario);
-        Jugador jugador = crearJugador(usuario);
-        Partida partida = instanciarPartida(jugador);
-        if (isNull(partida)) {
-            throw new PartidaNoCreadaException();
-        }
-        return partida;
     }
 
     @Override
@@ -164,24 +156,24 @@ public class ServicioPartidaImpl implements ServicioPartida {
     }
 
 
-    @Override
-    public Integer doblarApuesta(Partida partidaActiva, Usuario usuario) {
-        Integer apuestaOriginal = partidaActiva.getApuesta();
-        Integer nuevaApuesta = (apuestaOriginal * 2);
-        if (usuario.getSaldo() >= nuevaApuesta) {
-            partidaActiva.setApuesta(nuevaApuesta);
-            usuario.setSaldo(usuario.getSaldo() - apuestaOriginal);
-            return nuevaApuesta;
+
+        @Override
+        public void doblarApuesta(Partida partidaActiva, Usuario usuario, List<Map<String, Object>> cartasJugador) throws SaldoInsuficiente, UnaCantidadDeCartasSuperadaException, PartidaDividaException {
+            servicioDoblarApuesta.validarApuesta(usuario.getSaldo(), partidaActiva.getApuesta());
+            servicioDoblarApuesta.validarCantidadDeCartas(cartasJugador);
+            servicioDoblarApuesta.validarPartidaDividida(partidaActiva.getManoDividida());
+
+            doblarApuestaPartida(partidaActiva ,servicioDoblarApuesta.calcularDoblDeApuesta(partidaActiva.getApuesta()));
+            setearApuesta(usuario, partidaActiva.getApuesta());
+
+
+
         }
-        return apuestaOriginal;
 
+    private void doblarApuestaPartida(Partida partidaActiva, int i) {
+        partidaActiva.setApuesta(i);
+        repositorioPartida.actualizar(partidaActiva);
     }
-
-    @Override
-    public void seleccionBotonEstrategia(Partida partidaActiva) {
-        partidaActiva.setBotonEstrategia(true);
-    }
-
 
     @Override
     public Partida obtenerPartidaActiva(Usuario usuario) {
@@ -231,18 +223,6 @@ public class ServicioPartidaImpl implements ServicioPartida {
         servicioUsuario.actualizarSaldoDeUsuario(usuario, apuesta);
     }
 
-    //borrar
-    @Override
-    public void apostar(Usuario usuario, int monto) {
-
-        List<Partida> partidas = repositorioPartida.buscarPartidaActiva(usuario);
-        if (!partidas.isEmpty()) {
-            Partida partida = partidas.get(0);
-            partida.setApuesta(partida.getApuesta() + monto);
-            repositorioPartida.guardar(partida);
-        }
-
-    }
 
     @Override
     public void setBotonesAlCrearPartida(Partida partida) {
@@ -253,6 +233,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
         } else if (partida.getEstadoJuego().equals(EstadoDeJuego.JUEGO)) {
             partida.setBotonesDesicionHabilitados(true);
             partida.setBotonEstrategia(true);
+            partida.setBotonDoblarApuesta(true);
             partida.setFichasHabilitadas(false);
         } else if (partida.getEstadoJuego().equals(EstadoDeJuego.FINALIZADA) || partida.getEstadoJuego().equals(EstadoDeJuego.ABANDONADO)) {
             partida.setBotonesDesicionHabilitados(false);
@@ -307,17 +288,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
     }
 
 
-    @Override
-    public void validarPartida(Usuario usuario, int monto) throws ApuestaInvalidaException, SaldoInsuficiente {
-        if (monto <= 0) {
-            throw new ApuestaInvalidaException("El monto debe ser mayor a 0");
-        }
 
-        if (usuario.getSaldo() < monto) {
-            throw new SaldoInsuficiente("El saldo debe ser mayor a 0");
-        }
-
-    }
         @Override
         public void dividirPartida (Partida partida, List < Map < String, Object >> cartasJugador) throws
         NoSePuedenDividirMasDeDosCartasException, NoSePuedenDividirDosCartasDistintasException, ApuestaInvalidaException, SaldoInsuficiente
@@ -473,8 +444,14 @@ public class ServicioPartidaImpl implements ServicioPartida {
             }
         }
 
+    @Override
+    public String bloquearDoblarApuesta(Partida partida) {
+        partida.setBotonDoblarApuesta(false);
+    return "No puede doblar la apuesta";
+    }
 
-        @Override
+
+    @Override
         public String verficarPuntaje (Partida partida,int puntajeJugador){
             String mensaje = "Superaste los 21, el crupier gana.";
             if (puntajeJugador > 21) {

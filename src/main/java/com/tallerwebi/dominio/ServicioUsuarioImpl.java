@@ -130,11 +130,11 @@ public class ServicioUsuarioImpl implements ServicioUsuario {
     public void actualizarManosGanadas(Usuario usuario, Boolean gano) {
 
         Usuario usuarioDB = repositorioUsuario.buscar(usuario.getEmail());
-
+        if (usuarioDB.getManosGanadas() == null) {
+            usuarioDB.setManosGanadas(0);
+        }
         if (gano) {
-            if (usuarioDB.getManosGanadas() == null) {
-                usuarioDB.setManosGanadas(0);
-            }
+
 
             usuarioDB.setManosGanadas(usuarioDB.getManosGanadas() + 1);
 

@@ -127,16 +127,29 @@ public class ControladorPartida {
 
 
     @PostMapping("/doblarApuesta")
-    public ModelAndView doblarApuesta(HttpServletRequest request) {
+    public ModelAndView doblarApuesta(HttpServletRequest request){
         HttpSession session = request.getSession();
         Partida partida = (Partida) request.getSession().getAttribute("partida");
         ComienzoCartasDTO dto = (ComienzoCartasDTO) session.getAttribute("dto");
         ModelMap modelo = new ModelMap();
+        try{
+            servicioPartida.doblarApuesta(partida, partida.getJugador().getUsuario(), dto.getCartasJugador());
+//hay que mejorar lo de pedir carta, muchos datos redundantes
+            List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
+            Map<String, Object> cartaNueva = servicioPartida.pedirCarta(partida.getJugador(), cartasJugador, dto.getDeckId());
+            int puntajeJugador = servicioPartida.calcularPuntaje(cartasJugador);
+            dto.setPuntajeJugador(puntajeJugador);
+            modelo.put("cartaNueva", cartaNueva);
+          // * plantarse()*/
 
-        Integer apuesta = servicioPartida.doblarApuesta(partida, partida.getJugador().getUsuario());
+        }
+        catch(SaldoInsuficiente | UnaCantidadDeCartasSuperadaException |  PartidaDividaException exception) {
+            String mensaje = servicioPartida.bloquearDoblarApuesta(partida);
+            modelo.put("mensaje", mensaje);
+        }
 
         modelo.put("dto", dto);
-        modelo.put("apuesta", apuesta);
+        modelo.put("apuesta", partida.getApuesta());
         modelo.put("partida", partida);
         modelo.put("usuario", partida.getJugador().getUsuario());
         return new ModelAndView("juegoConCrupier", modelo);
@@ -188,7 +201,7 @@ public class ControladorPartida {
         List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
         String deckId = (String) session.getAttribute("deckId");
         ComienzoCartasDTO dto = (ComienzoCartasDTO) session.getAttribute("dto");
-
+//hay que modificar esto
         Map<String, Object> cartaNueva = servicioPartida.pedirCarta(partida.getJugador(), cartasJugador, deckId);
 
         int puntajeJugador = servicioPartida.calcularPuntaje(cartasJugador);

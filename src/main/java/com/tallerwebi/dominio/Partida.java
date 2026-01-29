@@ -18,6 +18,7 @@ public class Partida {
     private boolean fichasHabilitadas;
     private boolean botonesDesicionHabilitados;
     private boolean botonEstrategia;
+    private boolean botonDoblarApuesta;
     private String ganador;
     @Transient
     private List<Map<String, Object>> mano1;
@@ -50,7 +51,11 @@ public class Partida {
 
     public Boolean getBotonEstrategia(){ return botonEstrategia;}
 
+    public Boolean getBotonDoblarApuesta(){ return botonDoblarApuesta;}
+
     public void setBotonEstrategia(boolean botonEstrategia){ this.botonEstrategia = botonEstrategia; }
+
+    public void setBotonDoblarApuesta(boolean botonDoblarApuesta){ this.botonDoblarApuesta = botonDoblarApuesta; }
 
     public void setFichasHabilitadas(boolean fichasHabilitadas) {this.fichasHabilitadas = fichasHabilitadas;}
 

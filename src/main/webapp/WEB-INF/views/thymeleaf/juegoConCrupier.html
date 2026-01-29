@@ -115,7 +115,8 @@
 
             <form method="post" th:action="@{/doblarApuesta}" class="form-boton">
                 <button class="boton-desicion iconos-juego"
-                        th:classappend="${!partida.botonesDesicionHabilitados} ? ' boton-deshabilitado' : ''"
+                        th:disabled="${!partida.botonDoblarApuesta}"
+                        th:classappend="${!partida.botonesDesicionHabilitados or !partida.botonDoblarApuesta} ? ' boton-deshabilitado' : ''"
                         th:attr="disabled=${!partida.botonesDesicionHabilitados}">
                     <img th:src="@{/resources/core/images/boton-doblar-apuesta.png}" alt="Doblar apuesta" />
                 </button>
@@ -138,7 +139,7 @@
                         th:attr="disabled=${!partida.botonesDesicionHabilitados}">
                     <img th:src="@{/resources/core/images/boton-pararse.png}" alt="Plantarse" />
                 </button>
-                <p class="texto-descripcion">Pararse</p>
+                <p class="texto-descripcion">Plantarse</p>
             </form>
 
 

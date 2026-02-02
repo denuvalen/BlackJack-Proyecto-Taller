@@ -10,7 +10,7 @@ public interface ServicioPartida {
     void apostar(Partida partida, Integer monto) throws ApuestaInvalidaException, SaldoInsuficiente;
     void setBotonesAlCrearPartida(Partida partida);
     void setearApuesta(Usuario usuario, Integer apuesta);
-    Map<String, Object> pedirCarta(Jugador jugador, List<Map<String, Object>> cartasJugador, String deckId);
+    Map<String, Object> pedirCarta(Jugador jugador, ComienzoCartasDTO dto);
     int calcularPuntaje(List<Map<String, Object>> cartas);
     void consultarExistenciaDePartidaActiva(Usuario usuario) throws PartidaExistenteActivaException;
     Partida instanciarPartida(Jugador jugador) throws PartidaNoCreadaException;
@@ -32,7 +32,7 @@ public interface ServicioPartida {
     void dividirPartida(Partida partida, List<Map<String, Object>> cartasJugador) throws SaldoInsuficiente, ApuestaInvalidaException;
     String determinarResultadoDividido(Partida partida);
     void logicaBotonDividir(Partida partida, List<Map<String, Object>> cartasJugador, ComienzoCartasDTO dto);
-    String verficarPuntaje(Partida partida, int puntajeJugador);
+    String verficarPuntaje(Partida p, ComienzoCartasDTO dto);
     String determinarResultado(Partida partida, ComienzoCartasDTO dto, List<Map<String, Object>> cartasJugador);
     String gestionarTurnoPararse( Partida partida, ComienzoCartasDTO dto, List<Map<String, Object>> cartasDealer, List<Map<String, Object>> cartasJugador, String deckId);
     void entregarCartaAlCrupier (Partida partida, List < Map < String, Object >> cartasDealer, String deckId);

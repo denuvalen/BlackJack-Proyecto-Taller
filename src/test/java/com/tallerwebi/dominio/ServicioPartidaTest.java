@@ -237,30 +237,45 @@ public class ServicioPartidaTest {
         servicioPartida.rendirse(partidaActiva, jugador);
     }
 
+    //--PEDIR CARTA
     @Test
-    public void queAlSeleccionarElBotonPedirCartaSeLeAgregueUnaCartaAlJugadorYSeActualiceElPuntaje() {
-        Usuario usuario = givenExisteUnUsuario();
-        Partida partida = givenComienzaUnaPartida(usuario);
-        String deckId = "abc123";
+    public void queAlSeleccionarElBotonPedirCartaConMenosDe21PUntosSeLeAgregueUnaCartaAlDTOYSeRetorne(){
+        Jugador j = new Jugador();
+        j.setPuntaje(15);
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> cartaMock = Map.of("code", "AH", "value", "ACE");
+        list.add(cartaMock);
+        ComienzoCartasDTO dto = new ComienzoCartasDTO();
+        dto.setDeckId("test-deck");
 
-        Map<String, Object> cartaMock = new HashMap<>();
-        cartaMock.put("value", "10");
-        cartaMock.put("suit", "HEARTS");
-        cartaMock.put("image", "urlCarta.png");
+        when(servicioDeckOfCards.sacarCartas(anyString(), anyInt())).thenReturn(list);
 
-        whenElUsuarioPideUnaCarta(partida, deckId, cartaMock);
-        thenSeSumaUnaCartaYSuPuntaje(partida);
+        servicioPartida.pedirCarta(j, dto);
+
+        assertNotNull(dto.getCartasJugador());
+        assertEquals(1, dto.getCartasJugador().size());
+    }
+    @Test
+    public void queAlSeleccionarElBotonPedirCartaConMenosDe21SeLeAsigneElNuevoPuntajeAlJugador(){
+        Jugador j = new Jugador();
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> cartaMock = Map.of("value", "3");
+        list.add(cartaMock);
+        ComienzoCartasDTO dto = new ComienzoCartasDTO();
+        dto.setDeckId("test-deck");
+
+
+        when(servicioDeckOfCards.sacarCartas(anyString(), anyInt())).thenReturn(list);
+
+        servicioPartida.pedirCarta(j, dto);
+
+
+        assertEquals(3, dto.getPuntajeJugador());
+        assertEquals(3, j.getPuntaje());
     }
 
-    private void whenElUsuarioPideUnaCarta(Partida partida, String deckId, Map<String, Object> cartaMock) {
-        when(servicioDeckOfCards.sacarCartas(deckId, 1)).thenReturn(Collections.singletonList(cartaMock));
-        servicioPartida.pedirCarta(partida.getJugador(), cartasJugador, deckId);
-    }
 
-    private void thenSeSumaUnaCartaYSuPuntaje(Partida partida) {
-        assertEquals(1, cartasJugador.size());
-        assertTrue(partida.getJugador().getPuntaje() > 0);
-    }
 
 
     @Test

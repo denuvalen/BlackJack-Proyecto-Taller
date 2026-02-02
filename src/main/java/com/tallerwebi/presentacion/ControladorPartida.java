@@ -134,12 +134,10 @@ public class ControladorPartida {
         ModelMap modelo = new ModelMap();
         try{
             servicioPartida.doblarApuesta(partida, partida.getJugador().getUsuario(), dto.getCartasJugador());
-//hay que mejorar lo de pedir carta, muchos datos redundantes
-            List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
-            Map<String, Object> cartaNueva = servicioPartida.pedirCarta(partida.getJugador(), cartasJugador, dto.getDeckId());
-            int puntajeJugador = servicioPartida.calcularPuntaje(cartasJugador);
-            dto.setPuntajeJugador(puntajeJugador);
-            modelo.put("cartaNueva", cartaNueva);
+
+//            List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
+            servicioPartida.pedirCarta(partida.getJugador(), dto);
+//
           // * plantarse()*/
 
         }
@@ -198,23 +196,17 @@ public class ControladorPartida {
     public ModelAndView pedirCarta(HttpServletRequest request) {
         HttpSession session = request.getSession();
         Partida partida = (Partida) request.getSession().getAttribute("partida");
-        List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
-        String deckId = (String) session.getAttribute("deckId");
         ComienzoCartasDTO dto = (ComienzoCartasDTO) session.getAttribute("dto");
-//hay que modificar esto
-        Map<String, Object> cartaNueva = servicioPartida.pedirCarta(partida.getJugador(), cartasJugador, deckId);
-
-        int puntajeJugador = servicioPartida.calcularPuntaje(cartasJugador);
-        String mensaje = servicioPartida.verficarPuntaje(partida, puntajeJugador);
-        dto.setPuntajeJugador(puntajeJugador);
-        partida.getJugador().setPuntaje(puntajeJugador);
-
         ModelAndView mav = new ModelAndView("juegoConCrupier");
+
+        servicioPartida.pedirCarta(partida.getJugador(), dto);
+        String mensajeResultado = servicioPartida.verficarPuntaje(partida, dto);
+
+
+        mav.addObject("mensaje", mensajeResultado);
         mav.addObject("dto", dto);
-        mav.addObject("mensaje", mensaje);
         mav.addObject("usuario", partida.getJugador().getUsuario());
         mav.addObject("apuesta", ((Partida) session.getAttribute("partida")).getApuesta());
-        mav.addObject("cartaNueva", cartaNueva);
         mav.addObject("partida", partida);
         return mav;
 
@@ -225,17 +217,16 @@ public class ControladorPartida {
     public ModelAndView dividirPartida(HttpServletRequest request) throws SaldoInsuficiente, ApuestaInvalidaException {
         HttpSession session = request.getSession();
         Partida partida = (Partida) request.getSession().getAttribute("partida");
-        List<Map<String, Object>> cartasJugador = (List<Map<String, Object>>) session.getAttribute("cartasJugador");
-        String deckId = (String) session.getAttribute("deckId");
         ComienzoCartasDTO dto = (ComienzoCartasDTO) session.getAttribute("dto");
-        servicioPartida.logicaBotonDividir(partida, cartasJugador, dto);
-        servicioPartida.dividirPartida(partida, cartasJugador);
+
+        servicioPartida.logicaBotonDividir(partida, dto.getCartasJugador(), dto);
+        servicioPartida.dividirPartida(partida, dto.getCartasJugador());
 
         List<Map<String, Object>> mano1 = partida.getMano1();
         List<Map<String, Object>> mano2 = partida.getMano2();
 
-        Map<String, Object> cartaMano1 = servicioPartida.pedirCarta(partida.getJugador(), mano1, deckId);
-        Map<String, Object> cartaMano2 = servicioPartida.pedirCarta(partida.getJugador(), mano2, deckId);
+        Map<String, Object> cartaMano1 = servicioPartida.pedirCarta(partida.getJugador(), (ComienzoCartasDTO) mano1);
+        Map<String, Object> cartaMano2 = servicioPartida.pedirCarta(partida.getJugador(), (ComienzoCartasDTO) mano2);
 
         partida.setPuntajeMano1(servicioPartida.calcularPuntaje(mano1));
         partida.setPuntajeMano2(servicioPartida.calcularPuntaje(mano2));

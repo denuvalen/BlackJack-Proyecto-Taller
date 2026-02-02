@@ -451,18 +451,28 @@ public class ServicioPartidaImpl implements ServicioPartida {
     }
 
 
-    @Override
-        public String verficarPuntaje (Partida partida,int puntajeJugador){
-            String mensaje = "Superaste los 21, el crupier gana.";
-            if (puntajeJugador > 21) {
-                bloquearBotones(partida);
-                partida.setEstadoPartida(EstadoPartida.INACTIVA);
-                repositorioPartida.guardar(partida);
-                return mensaje;
-            }
-            return null;
+//    @Override
+//        public String verficarPuntaje (Partida partida,int puntajeJugador){
+//            String mensaje = "Superaste los 21, el crupier gana.";
+//            if (puntajeJugador > 21) {
+//                bloquearBotones(partida);
+//                partida.setEstadoPartida(EstadoPartida.INACTIVA);
+//                repositorioPartida.guardar(partida);
+//                return mensaje;
+//            }
+//            return null;
+//
+//        }
 
+    @Override
+    public String verficarPuntaje (Partida p, ComienzoCartasDTO dto){
+        if (dto.getPuntajeJugador() >= 21) {
+          String resultado =  gestionarTurnoPararse(p, dto, dto.getCartasDealer(), dto.getCartasJugador(), dto.getDeckId());
+          return resultado;
         }
+        return null;
+    }
+
         @Override
         public String gestionarTurnoPararse (
                 Partida partida,
@@ -475,7 +485,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
             String mensajeResultado = determinarResultado(partida, dto, cartasJugador);
             dto.setPuntajeDealer(partida.getCrupier().getPuntaje());
             bloquearBotones(partida);
-
+            partida.setEstadoPartida(EstadoPartida.INACTIVA);
             Usuario usuario = partida.getJugador().getUsuario();
             servicioUsuario.registrarResultado(usuario, mensajeResultado);
             servicioUsuario.actualizarLogros(usuario);
@@ -488,11 +498,9 @@ public class ServicioPartidaImpl implements ServicioPartida {
 
 
         @Override
-        public Map<String, Object> pedirCarta (Jugador jugador, List < Map < String, Object >> cartasJugador, String
-        deckId){
-            if (deckId == null || deckId.isEmpty()) {
-                return null;
-            }
+        public Map<String, Object>  pedirCarta (Jugador jugador, ComienzoCartasDTO dto){
+            List<Map<String, Object>> cartasJugador = dto.getCartasJugador();
+            String deckId = dto.getDeckId();
 
             if (jugador.getPuntaje() < 21) {
                 List<Map<String, Object>> nuevaCarta = servicioDeckOfCards.sacarCartas(deckId, 1);
@@ -501,7 +509,8 @@ public class ServicioPartidaImpl implements ServicioPartida {
                 int puntajeJugador = calcularPuntaje(cartasJugador);
                 jugador.setPuntaje(puntajeJugador);
 
-                return nuevaCarta.get(0);
+                dto.setPuntajeJugador(puntajeJugador);
+               return cartasJugador.get(0);
             }
             return null;
         }

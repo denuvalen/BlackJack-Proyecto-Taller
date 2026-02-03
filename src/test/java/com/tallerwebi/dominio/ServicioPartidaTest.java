@@ -4,6 +4,8 @@ import com.tallerwebi.dominio.excepcion.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +23,7 @@ public class ServicioPartidaTest {
     private ServicioDeckOfCards servicioDeckOfCards;
     private ServicioPartidaImpl servicioPartida;
     private ServicioDoblarApuesta servicioDoblarApuesta;
+    private ServicioPartida servicioPartidaMock;
     List<Map<String, Object>> cartasJugador = new ArrayList<>();
 
     @BeforeEach
@@ -32,6 +35,7 @@ public class ServicioPartidaTest {
         servicioEstrategia = mock(ServicioEstrategia.class);
         servicioDoblarApuesta = mock(ServicioDoblarApuesta.class);
         servicioUsuario = mock(ServicioUsuario.class);
+        servicioPartidaMock = mock(ServicioPartida.class);
         servicioPartida = new ServicioPartidaImpl( servicioDeckOfCards, repositorioPartida, repositorioUsuario,
                 repositorioJugador, servicioUsuario, servicioEstrategia, servicioDoblarApuesta);
     }
@@ -197,6 +201,26 @@ public class ServicioPartidaTest {
 //        Integer resultado= servicioPartida.doblarApuesta(partidaActiva, jugador);
 //        return resultado;
 //    }
+    @Test
+    public void queAlEntregarCartaAlCrupierSeLeRepartaUnaSolaCartaSiElJugadorTieneMasDe21Puntos(){
+        Usuario usuario = givenExisteUnUsuario();
+        Partida partidaActiva = givenComienzaUnaPartida(usuario);
+        ComienzoCartasDTO dto = new ComienzoCartasDTO();
+        dto.setPuntajeJugador(22);
+        dto.setDeckId("test-deck");
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> cartaMock = Map.of("code", "AH", "value", "ACE");
+        list.add(cartaMock);
+
+        when(servicioDeckOfCards.sacarCartas(anyString(), anyInt())).thenReturn(list);
+        when(servicioPartidaMock.calcularPuntaje(anyList())).thenReturn(10);
+
+        servicioPartida.entregarCartaAlCrupier(partidaActiva, dto);
+
+        assertEquals(1, dto.getCartasDealer().size());
+    }
+
+
 
     @Test
     public void queAlSeleccionarElBotonPararseSeComparenLosPuntosYSeDefinaUnGanador() throws PartidaActivaNoEnApuestaException{

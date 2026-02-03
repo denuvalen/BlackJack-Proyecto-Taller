@@ -427,7 +427,10 @@ public class ServicioPartidaImpl implements ServicioPartida {
 
         @Override
         public void entregarCartaAlCrupier (Partida
-        partida, List < Map < String, Object >> cartasDealer, String deckId){
+        partida, ComienzoCartasDTO dto){
+
+            String deckId = dto.getDeckId();
+            List<Map<String, Object>> cartasDealer = dto.getCartasDealer();
 
             List<Map<String, Object>> nuevaCarta = servicioDeckOfCards.sacarCartas(deckId, 1);
             cartasDealer.add(nuevaCarta.get(0));
@@ -435,13 +438,16 @@ public class ServicioPartidaImpl implements ServicioPartida {
             partida.getCrupier().setPuntaje(puntajeCrupier);
             repositorioPartida.actualizar(partida);
 
-            while (puntajeCrupier <= 16) {
-                nuevaCarta = servicioDeckOfCards.sacarCartas(deckId, 1);
-                cartasDealer.add(nuevaCarta.get(0));
-                puntajeCrupier = calcularPuntaje(cartasDealer);
-                partida.getCrupier().setPuntaje(puntajeCrupier);
-                repositorioPartida.actualizar(partida);
+            if(dto.getPuntajeJugador() <= 21){
+                while (puntajeCrupier <= 16) {
+                    nuevaCarta = servicioDeckOfCards.sacarCartas(deckId, 1);
+                    cartasDealer.add(nuevaCarta.get(0));
+                    puntajeCrupier = calcularPuntaje(cartasDealer);
+                    partida.getCrupier().setPuntaje(puntajeCrupier);
+                    repositorioPartida.actualizar(partida);
+                }
             }
+
         }
 
     @Override
@@ -481,7 +487,7 @@ public class ServicioPartidaImpl implements ServicioPartida {
                 List < Map < String, Object >> cartasJugador,
                 String deckId
     ){
-            entregarCartaAlCrupier(partida, cartasDealer, deckId);
+            entregarCartaAlCrupier(partida, dto);
             String mensajeResultado = determinarResultado(partida, dto, cartasJugador);
             dto.setPuntajeDealer(partida.getCrupier().getPuntaje());
             bloquearBotones(partida);

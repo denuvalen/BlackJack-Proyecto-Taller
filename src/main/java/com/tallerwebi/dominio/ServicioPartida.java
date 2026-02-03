@@ -35,7 +35,7 @@ public interface ServicioPartida {
     String verficarPuntaje(Partida p, ComienzoCartasDTO dto);
     String determinarResultado(Partida partida, ComienzoCartasDTO dto, List<Map<String, Object>> cartasJugador);
     String gestionarTurnoPararse( Partida partida, ComienzoCartasDTO dto, List<Map<String, Object>> cartasDealer, List<Map<String, Object>> cartasJugador, String deckId);
-    void entregarCartaAlCrupier (Partida partida, List < Map < String, Object >> cartasDealer, String deckId);
+    void entregarCartaAlCrupier (Partida partida, ComienzoCartasDTO dto);
 
     String bloquearDoblarApuesta(Partida partida);
 }
